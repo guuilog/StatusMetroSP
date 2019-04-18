@@ -1,42 +1,101 @@
-import smtplib
-from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
-from email.mime.base import MIMEBase
-from email import encoders
+from email.mime.text import MIMEText
+
 import requests
-import ast
 import smtplib
 import json
-
-url = "http://apps.cptm.sp.gov.br:8080/AppMobileService/api/LinhasMetropolitanas"
-
-resp = requests.get(url=url)
-data = json.loads(resp.text)
-string_body = ''
-
-for d in data:
-
- string_body += "Linha: " + str(d['LinhaId']) +" " + d['Nome']+  " - " + d['Status'] + " (" +d['Descricao'] + ") " + "; \n "
-  
-email_user = 'spviva8@gmail.com'
-email_password = 'iWeekedBR'
-email_send = open(r'C:\Users\PC-Casa\Desktop\Python Email\data\recipients.txt').read()
-
-subject = 'Situacao do Metro SP'
-
-msg = MIMEMultipart()
-msg['From'] = email_user
-msg['To'] = email_send
-msg['Subject'] = subject
-
-body = string_body
-msg.attach(MIMEText(body,'plain'))
-text = msg.as_string()
-server = smtplib.SMTP('smtp.gmail.com',587)
-server.starttls()
-server.login(email_user,email_password)
+import ast
 
 
-server.sendmail(email_user,email_send,text)
+class Crawler:
+    """Crawler na API do metro de SP
 
-server.quit()
+    Essa classe tem como objetivo fazer o 'requests' na API do metrô de SP. No final do processamento, esta classe
+    retornará uma string que contém as informações das linhas do metrô de SP.
+
+    Exemplos
+    --------
+    >>> data_ = Crawler().main()
+    :return: 'Linha: 1 AZUL - Operação Normal () ; \n Linha: 2 VERDE - Operação Normal () ; \n Linha: 3 VERMELHA - Operação Normal () ;
+
+    Observações:
+    ------------
+    Ao chamar a função main(), a mesma já chamará o restante das funções.
+
+    """
+
+    def __init__(self):
+        self.url = "http://apps.cptm.sp.gov.br:8080/AppMobileService/api/LinhasMetropolitanas"
+
+    # Used in main
+    def get_page_content(self):
+        return requests.get(url=self.url)
+
+    # Used in main
+    @staticmethod
+    def load_json(page_content):
+        return json.loads(page_content.text)
+
+    # Used in main
+    @staticmethod
+    def generating_text(data):
+        string_body = ''
+        for d in data:
+            string_body += "Linha: " + str(d['LinhaId']) + " " + d['Nome'] + " - " + d['Status'] + " (" + d['Descricao'] + ") " + "; \n "
+
+        return string_body
+
+    def main(self):
+        resp = self.get_page_content()
+        data = self.load_json(page_content=resp)
+        return self.generating_text(data=data)
+
+
+class SendMail:
+    def __init__(self, body):
+        """'Enviadora de emails
+
+        Essa classe manda o email de um determinado remetente com um conteúdo determinado pelo argumento 'body'. Os
+        destinatários são definidos num arquivo .txt.
+
+        Parameters
+        ----------
+        body: str
+            Corpo do email.
+
+        Exemplos
+        --------
+        >>> SendMail(body='Corpo do email').send_message()
+
+        """
+
+        self.email = 'spviva8@gmail.com'
+        self.password = 'iWeekedBR'
+        self.server = 'smtp.gmail.com'
+        self.port = 587
+        self.body = body
+
+        self.recipients = open('data/recipients.txt').read()
+
+        session = smtplib.SMTP(self.server, self.port)
+        session.ehlo()
+        session.starttls()
+        session.login(self.email, self.password)
+        self.session = session
+
+    def send_message(self):
+        message = MIMEMultipart("alternative")
+        message["Subject"] = "Situação do Metro SP"
+        message["From"] = self.email
+        message["To"] = self.recipients
+
+        message.attach(MIMEText(self.body))
+
+        with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
+            server.login(self.email, self.password)
+            server.sendmail(self.email, message['To'].split(','), message.as_string())
+
+
+if __name__ == '__main__':
+    data_ = Crawler().main()
+    SendMail(body=data_).send_message()
