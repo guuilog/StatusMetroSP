@@ -1,0 +1,1 @@
+print(open(r'C:\Users\PC-Casa\Desktop\Python Email\data\recipients.txt').read())
