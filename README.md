@@ -5,3 +5,9 @@
 
 `url = "http://apps.cptm.sp.gov.br:8080/AppMobileService/api/LinhasMetropolitanas"`
  
+
+<h3> Bibliotecas para importar: </h3>
+`import requests
+import smtplib
+import json
+import ast`
