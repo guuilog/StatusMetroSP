@@ -13,5 +13,5 @@
 import requests
 import smtplib
 import json
-<p>import ast
+import ast
 `
