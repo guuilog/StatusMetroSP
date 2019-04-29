@@ -9,9 +9,4 @@
 <h3> Bibliotecas para importar: </h3>
 
 
-`
-import requests
-import smtplib
-import json
-import ast
-`
+`import requests import smtplib import json <p>import ast</p>`
