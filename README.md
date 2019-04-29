@@ -10,8 +10,8 @@
 
 
 `
-<p>import requests</p>
-<p>import smtplib</p>
-<p>import json</p>
-<p>import ast</p>
+import requests
+import smtplib
+import json
+<p>import ast
 `
